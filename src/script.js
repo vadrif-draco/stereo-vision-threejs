@@ -20,6 +20,7 @@ const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerH
 const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
+window.addEventListener('resize', onWindowResize, false);
 
 const controls = new MapControls(camera, renderer.domElement);
 controls.enableDamping = true
@@ -111,6 +112,12 @@ createNewSphere(550, 100, 350, 0xEB9109, 20);
 createNewSphere(500, 100, 400, 0xEB9109, 20);
 createNewSphere(380, 20, 280, 0xEB9109, 20);
 animate();
+
+function onWindowResize() {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+}
 
 function createNewSphere(x, y, z, color, radius) {
     const sphere = new THREE.Mesh(
