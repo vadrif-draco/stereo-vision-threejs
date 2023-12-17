@@ -14,6 +14,7 @@ const CAM2_TARGET = [500, 100, 530]
 let pos = START_POS
 let target = START_TARGET
 let camFreeRoam = { enabled: false }
+let animationMultiplier = { value: 1.0 }
 
 const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 20, 20000);
 
@@ -63,6 +64,7 @@ gui.add(camSwitcher, 'v1').name('Switch to view 1');
 gui.add(camSwitcher, 'v2').name('Switch to view 2');
 gui.add(camSwitcher, 'v3').name('Switch to view 3');
 gui.add(camSwitcher, 'r').name('Reset view');
+gui.add(animationMultiplier, 'value', 0.2, 2.0, 0.1).name("Animation speed");
 gui.add(camFreeRoam, 'enabled').name('Toggle freeroam').onChange(setFreeroam).listen();
 
 const scene = new THREE.Scene();
@@ -136,8 +138,8 @@ function createNewSphere(x, y, z, color, radius) {
 
 function animate(time) {
     if (!camFreeRoam.enabled) {
-        controls.target.lerp(new THREE.Vector3(...target), 0.04)
-        controls.object.position.lerp(new THREE.Vector3(...pos), 0.04)
+        controls.target.lerp(new THREE.Vector3(...target), 0.04 * animationMultiplier.value)
+        controls.object.position.lerp(new THREE.Vector3(...pos), 0.04 * animationMultiplier.value)
     }
     controls.update();
     renderer.render(scene, camera);
