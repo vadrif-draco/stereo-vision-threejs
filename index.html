@@ -3,18 +3,18 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" href="./src/styles.css" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/dat.gui@0.7.9/build/dat.gui.min.css" />
+    <link rel="stylesheet" href="https://unpkg.com/dat.gui@0.7.9/build/dat.gui.css"/>
+    <link rel="stylesheet" href="src/styles.css" />
   </head>
   <body>
     <script type="importmap">
-        {
-            "imports": {
-                "three": "https://cdn.jsdelivr.net/npm/three@0.159.0/build/three.min.js",
-                "three/examples/jsm/controls/MapControls":"https://cdn.jsdelivr.net/npm/three@0.159.0/examples/jsm/controls/MapControls.js",
-                "dat.gui": "https://cdn.jsdelivr.net/npm/dat.gui@0.7.9/build/dat.gui.min.js"
-            }
+      {
+        "imports": {
+          "dat.gui": "https://unpkg.com/dat.gui@0.7.9/build/dat.gui.js",
+          "three": "https://threejs.org/build/three.module.js",
+          "three/examples/jsm/controls/MapControls": "https://cdn.jsdelivr.net/npm/three@0.159.0/examples/jsm/controls/MapControls.js"
         }
+      }
     </script>
     <script type="module" src="./src/script.js"></script>
   </body>
