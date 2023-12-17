@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import * as dat from 'dat.gui';
 import { MapControls } from 'three/examples/jsm/controls/MapControls'
 
-const START_POS = [200, 800, 1200]
+const START_POS = [200, 800, 1500]
 const START_TARGET = [250, 0, 350]
 
 const CAM1_POS = [40, 100, 850]
@@ -104,16 +104,18 @@ camera2plane.position.x = 290;
 camera2plane.position.z = 815;
 scene.add(camera2plane)
 
-createNewSphere(600, 100, 300);
-createNewSphere(550, 100, 350);
-createNewSphere(500, 100, 400);
-createNewSphere(380, 20, 280);
+createNewSphere(...CAM1_POS, 0xD0F9D6, 10);
+createNewSphere(...CAM2_POS, 0xCED0FF, 10);
+createNewSphere(600, 100, 300, 0xEB9109, 20);
+createNewSphere(550, 100, 350, 0xEB9109, 20);
+createNewSphere(500, 100, 400, 0xEB9109, 20);
+createNewSphere(380, 20, 280, 0xEB9109, 20);
 animate();
 
-function createNewSphere(x, y, z) {
+function createNewSphere(x, y, z, color, radius) {
     const sphere = new THREE.Mesh(
-        new THREE.SphereGeometry(20, 64, 64),
-        new THREE.MeshStandardMaterial({ color: 0xEB9109, roughness: 0.2, metalness: 0.98 })
+        new THREE.SphereGeometry(radius, 64, 64),
+        new THREE.MeshStandardMaterial({ color: color, roughness: 0.2, metalness: 0.98 })
     );
     sphere.position.set(x, y, z);
     scene.add(sphere);
