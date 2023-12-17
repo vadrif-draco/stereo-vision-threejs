@@ -13,7 +13,7 @@ const CAM2_TARGET = [500, 100, 530]
 
 let pos = START_POS
 let target = START_TARGET
-let freeroam = false
+let camFreeRoam = { enabled: false }
 
 const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 20000);
 
@@ -41,28 +41,29 @@ const camSwitcher = {
     v1: () => {
         pos = CAM1_POS;
         target = CAM1_TARGET;
+        camFreeRoam.enabled = false;
     },
     v2: () => {
         pos = CAM2_POS;
         target = CAM2_TARGET;
+        camFreeRoam.enabled = false;
     },
     v3: () => {
+        camFreeRoam.enabled = false;
         // Tilt me pls
     },
     r: () => {
         pos = START_POS;
         target = START_TARGET;
+        camFreeRoam.enabled = false;
     },
 };
-const camFreeRoam = { toggle: freeroam }
 gui.add(camSwitcher, 'c').name('console.log -- for debugging purposes');
 gui.add(camSwitcher, 'v1').name('Switch to view 1');
 gui.add(camSwitcher, 'v2').name('Switch to view 2');
 gui.add(camSwitcher, 'v3').name('Switch to view 3');
 gui.add(camSwitcher, 'r').name('Reset view');
-gui.add(camFreeRoam, 'toggle').name('Toggle freeroam').onChange((e) => {
-    controls.enablePan = controls.enableRotate = controls.enableZoom = freeroam = e
-});
+gui.add(camFreeRoam, 'enabled').name('Toggle freeroam').onChange(setFreeroam).listen();
 
 const scene = new THREE.Scene();
 
@@ -119,6 +120,10 @@ function onWindowResize() {
     renderer.setSize(window.innerWidth, window.innerHeight);
 }
 
+function setFreeroam(enabled) {
+    controls.enablePan = controls.enableRotate = controls.enableZoom = enabled
+}
+
 function createNewSphere(x, y, z, color, radius) {
     const sphere = new THREE.Mesh(
         new THREE.SphereGeometry(radius, 64, 64),
@@ -130,7 +135,7 @@ function createNewSphere(x, y, z, color, radius) {
 }
 
 function animate(time) {
-    if (!freeroam) {
+    if (!camFreeRoam.enabled) {
         controls.target.lerp(new THREE.Vector3(...target), 0.04)
         controls.object.position.lerp(new THREE.Vector3(...pos), 0.04)
     }
