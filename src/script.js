@@ -28,7 +28,7 @@ controls.enablePan = false
 controls.enableRotate = false
 controls.enableZoom = false
 
-const gui = new dat.GUI();
+const gui = new dat.GUI({ width: 300 });
 const camSwitcher = {
     c: () => {
         console.log("Target: ")
