@@ -5,3 +5,15 @@ body {
     background: radial-gradient(#292929, #000000);
     overflow: hidden;
 }
+
+li:has(.special_red) {
+    border-left: 3px solid #e61d5f !important
+}
+
+.special_red .slider-fg {
+    background: #e61d5f !important
+}
+
+.special_red input {
+    color: #e61d5f !important
+}

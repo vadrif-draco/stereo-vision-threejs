@@ -1,147 +1,186 @@
-import * as THREE from 'three';
-import * as dat from 'dat.gui';
+import * as dat from 'dat.gui'
+import * as THREE from 'three'
 import { MapControls } from 'three/examples/jsm/controls/MapControls'
 
-const START_POS = [200, 800, 1500]
-const START_TARGET = [250, 0, 350]
-
-const CAM1_POS = [40, 100, 850]
-const CAM1_TARGET = [360, 100, 420]
-
-const CAM2_POS = [180, 100, 960]
-const CAM2_TARGET = [500, 100, 530]
+const START_POS = [450, 600, 1250]
+const START_TARGET = [450, -150, 350]
 
 let pos = START_POS
 let target = START_TARGET
-let camFreeRoam = { enabled: false }
-let animationMultiplier = { value: 1.0 }
 
-const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 20, 20000);
+const VIEW1_POS = [40, 100, 850]
+const VIEW1_TARGET = [360, 100, 420]
+const VIEW1_PLANE_ROT = [0, -0.64, 0] // In radians
+const VIEW1_PLANE_POS = [140, 100, 700]
 
-const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
-renderer.setSize(window.innerWidth, window.innerHeight);
-document.body.appendChild(renderer.domElement);
-window.addEventListener('resize', onWindowResize, false);
+const VIEW2_POS = [180, 100, 960]
+const VIEW2_TARGET = [500, 100, 530]
+const VIEW2_PLANE_ROT = [0, -0.64, 0] // In radians
+const VIEW2_PLANE_POS = [290, 100, 815]
 
-const controls = new MapControls(camera, renderer.domElement);
+const VIEW3_POS = [1150, 100, 550]
+const VIEW3_TARGET = [750, 100, 550]
+const VIEW3_PLANE_ROT = [0, 1.60, -0.60] // In radians
+const VIEW3_PLANE_POS = [965, 100, 550]
+
+const SPHERE1_POS = [600, 100, 300]
+const SPHERE2_POS = [550, 100, 350]
+const SPHERE3_POS = [500, 100, 400]
+const SPHERE4_POS = [380, 20, 280]
+
+const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 20, 20000)
+
+const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true })
+renderer.setSize(window.innerWidth, window.innerHeight)
+document.body.appendChild(renderer.domElement)
+window.addEventListener('resize', onWindowResize)
+
+const controls = new MapControls(camera, renderer.domElement)
 controls.enableDamping = true
+controls.dampingFactor = 0.1
+controls.maxDistance = 1500
 controls.enablePan = false
 controls.enableRotate = false
 controls.enableZoom = false
 
-const gui = new dat.GUI({ width: 300 });
-const camSwitcher = {
+const viewControls = {
+    freeroam: false,
+    viewTilt: 0.0,
+    animSpeed: 1.0,
     c: () => {
-        console.log("Target: ")
-        console.log(controls.target)
-        console.log("Position: ")
-        console.log(controls.object.position)
-        console.log("Rotation: ")
-        console.log(controls.object.rotation)
+        console.log(
+            "Rotation: " + controls.object.rotation.toArray()
+            + "\nPosition: " + controls.object.position.toArray()
+            + "\nTarget: " + controls.target.toArray()
+        )
     },
     v1: () => {
-        pos = CAM1_POS;
-        target = CAM1_TARGET;
-        camFreeRoam.enabled = false;
+        pos = VIEW1_POS
+        target = VIEW1_TARGET
+        setFreeroam(viewControls.freeroam = false)
+        // setTimeout(() => { viewControls.viewTilt = 0.0 }, 1000)
     },
     v2: () => {
-        pos = CAM2_POS;
-        target = CAM2_TARGET;
-        camFreeRoam.enabled = false;
+        pos = VIEW2_POS
+        target = VIEW2_TARGET
+        setFreeroam(viewControls.freeroam = false)
+        // setTimeout(() => { viewControls.viewTilt = 0.0 }, 1000)
     },
     v3: () => {
-        camFreeRoam.enabled = false;
-        // Tilt me pls
+        pos = VIEW3_POS
+        target = VIEW3_TARGET
+        setFreeroam(viewControls.freeroam = false)
+        // setTimeout(() => { viewControls.viewTilt = -70.0 }, 1000)
     },
     r: () => {
-        pos = START_POS;
-        target = START_TARGET;
-        camFreeRoam.enabled = false;
+        pos = START_POS
+        target = START_TARGET
+        viewControls.viewTilt = 0.0
+        setFreeroam(viewControls.freeroam = false)
     },
-};
-gui.add(camSwitcher, 'c').name('console.log -- for debugging purposes');
-gui.add(camSwitcher, 'v1').name('Switch to view 1');
-gui.add(camSwitcher, 'v2').name('Switch to view 2');
-gui.add(camSwitcher, 'v3').name('Switch to view 3');
-gui.add(camSwitcher, 'r').name('Reset view');
-gui.add(animationMultiplier, 'value', 0.2, 2.0, 0.1).name("Animation speed");
-gui.add(camFreeRoam, 'enabled').name('Toggle freeroam').onChange(setFreeroam).listen();
+}
 
-const scene = new THREE.Scene();
+const gui = new dat.GUI({ width: 300 })
+gui.add(viewControls, 'c').name('console.log -- for debugging purposes')
+gui.add(viewControls, 'v1').name('Switch to view 1')
+gui.add(viewControls, 'v2').name('Switch to view 2')
+gui.add(viewControls, 'v3').name('Switch to view 3')
+gui.add(viewControls, 'viewTilt', -100, 100, 5).name("Tilt view").listen().domElement.classList += " special_red"
+gui.add(viewControls, 'r').name('Reset view')
+gui.add(viewControls, 'animSpeed', 0.5, 2.5, 0.1).name("Animation speed")
+gui.add(viewControls, 'freeroam').name('Toggle freeroam').onChange(setFreeroam).listen()
 
-const ambientlight = new THREE.AmbientLight(0xffffff, 10);
-scene.add(ambientlight);
+const axesHelper = new THREE.AxesHelper(100000)
 
-const pointlight = new THREE.DirectionalLight(0xffffff, 50, 0, 0.5);
-pointlight.position.set(100, 10000, 100);
-scene.add(pointlight);
+const ambLight = new THREE.AmbientLight(0xffffff, 50)
 
-const axesHelper = new THREE.AxesHelper(10000);
-scene.add(axesHelper);
+const dirLight = new THREE.DirectionalLight(0xffffff, 50, 0, 0.5)
+dirLight.position.set(-100, 400, 100)
 
 const ground = new THREE.Mesh(
-    new THREE.PlaneGeometry(3000, 3000),
+    new THREE.PlaneGeometry(100000, 100000),
     new THREE.MeshBasicMaterial({ color: 0x333333, transparent: true, opacity: 0.5, side: THREE.DoubleSide })
-);
-ground.rotation.x = -0.5 * Math.PI;
-ground.position.x = 1500;
-ground.position.z = 1500;
-scene.add(ground)
-
-const camera1plane = new THREE.Mesh(
-    new THREE.PlaneGeometry(150, 100),
-    new THREE.MeshBasicMaterial({ color: 0xD0F9D6, transparent: true, opacity: 0.2, side: THREE.DoubleSide })
 )
-camera1plane.rotateY(-0.64)
-camera1plane.position.y = 100;
-camera1plane.position.x = 140;
-camera1plane.position.z = 700;
-scene.add(camera1plane)
+ground.rotation.x = -0.5 * Math.PI
+ground.position.x = 50000
+ground.position.z = 50000
 
-const camera2plane = new THREE.Mesh(
-    new THREE.PlaneGeometry(150, 100),
-    new THREE.MeshBasicMaterial({ color: 0xCED0FF, transparent: true, opacity: 0.2, side: THREE.DoubleSide })
-)
-camera2plane.rotateY(-0.64)
-camera2plane.position.y = 100;
-camera2plane.position.x = 290;
-camera2plane.position.z = 815;
-scene.add(camera2plane)
+const scene = new THREE.Scene()
+scene.add(
+    ambLight, dirLight, axesHelper, ground,
+    createNewSphere(...SPHERE1_POS, 20, 0xEB9109),
+    createNewSphere(...SPHERE2_POS, 20, 0xEB9109),
+    createNewSphere(...SPHERE3_POS, 20, 0xEB9109),
+    createNewSphere(...SPHERE4_POS, 20, 0xEB9109),
+    createNewSphere(...VIEW1_POS, 10, 0xD0F9D6),
+    createNewSphere(...VIEW2_POS, 10, 0xCED0FF),
+    createNewSphere(...VIEW3_POS, 10, 0xFFB9B9),
+    createNewLine(...VIEW1_POS, ...SPHERE1_POS, 0xD0F9D6),
+    // Same ray since these spheres are collinear w.r.t view1
+    // createNewLine(...VIEW1_POS, ...SPHERE2_POS, 0xD0F9D6),
+    // createNewLine(...VIEW1_POS, ...SPHERE3_POS, 0xD0F9D6),
+    createNewLine(...VIEW1_POS, ...SPHERE4_POS, 0xD0F9D6),
+    createNewLine(...VIEW2_POS, ...SPHERE1_POS, 0xCED0FF),
+    createNewLine(...VIEW2_POS, ...SPHERE2_POS, 0xCED0FF),
+    createNewLine(...VIEW2_POS, ...SPHERE3_POS, 0xCED0FF),
+    createNewLine(...VIEW2_POS, ...SPHERE4_POS, 0xCED0FF),
+    createNewLine(...VIEW3_POS, ...SPHERE1_POS, 0xFFB9B9),
+    createNewLine(...VIEW3_POS, ...SPHERE2_POS, 0xFFB9B9),
+    createNewLine(...VIEW3_POS, ...SPHERE3_POS, 0xFFB9B9),
+    createNewLine(...VIEW3_POS, ...SPHERE4_POS, 0xFFB9B9),
+    createNewPlane(...VIEW1_PLANE_POS, ...VIEW1_PLANE_ROT, 0xD0F9D6),
+    createNewPlane(...VIEW2_PLANE_POS, ...VIEW2_PLANE_ROT, 0xCED0FF),
+    createNewPlane(...VIEW3_PLANE_POS, ...VIEW3_PLANE_ROT, 0xFFB9B9),
+).fog = new THREE.Fog(0x191919, 1000, 5000)
 
-createNewSphere(...CAM1_POS, 0xD0F9D6, 10);
-createNewSphere(...CAM2_POS, 0xCED0FF, 10);
-createNewSphere(600, 100, 300, 0xEB9109, 20);
-createNewSphere(550, 100, 350, 0xEB9109, 20);
-createNewSphere(500, 100, 400, 0xEB9109, 20);
-createNewSphere(380, 20, 280, 0xEB9109, 20);
-animate();
+animate()
 
 function onWindowResize() {
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
+    camera.aspect = window.innerWidth / window.innerHeight
+    camera.updateProjectionMatrix()
+    renderer.setSize(window.innerWidth, window.innerHeight)
 }
 
 function setFreeroam(enabled) {
     controls.enablePan = controls.enableRotate = controls.enableZoom = enabled
 }
 
-function createNewSphere(x, y, z, color, radius) {
-    const sphere = new THREE.Mesh(
+function createNewSphere(x, y, z, radius, color) {
+    let sphere = new THREE.Mesh(
         new THREE.SphereGeometry(radius, 64, 64),
-        new THREE.MeshStandardMaterial({ color: color, roughness: 0.2, metalness: 0.98 })
-    );
-    sphere.position.set(x, y, z);
-    scene.add(sphere);
+        new THREE.MeshStandardMaterial({ color: color, roughness: 0.2, metalness: 0.99 })
+    )
+    sphere.position.set(x, y, z)
     return sphere
 }
 
-function animate(time) {
-    if (!camFreeRoam.enabled) {
-        controls.target.lerp(new THREE.Vector3(...target), 0.04 * animationMultiplier.value)
-        controls.object.position.lerp(new THREE.Vector3(...pos), 0.04 * animationMultiplier.value)
+function createNewPlane(x, y, z, rotX, rotY, rotZ, color) {
+    let plane = new THREE.Mesh(
+        new THREE.PlaneGeometry(180, 120),
+        new THREE.MeshBasicMaterial({ color: color, transparent: true, opacity: 0.2, side: THREE.DoubleSide })
+    )
+    plane.rotation.set(rotX, rotY, rotZ)
+    plane.position.set(x, y, z)
+    return plane
+}
+
+function createNewLine(x1, y1, z1, x2, y2, z2, color) {
+    return new THREE.Line(
+        new THREE.BufferGeometry().setFromPoints([
+            new THREE.Vector3(x1, y1, z1),
+            new THREE.Vector3(x2, y2, z2),
+        ]),
+        new THREE.LineBasicMaterial({ color: color, transparent: true, opacity: 0.2 })
+    )
+}
+
+function animate() {
+    requestAnimationFrame(animate)
+    controls.update()
+    if (!viewControls.freeroam) {
+        controls.object.position.lerp(new THREE.Vector3(...pos), 0.04 * viewControls.animSpeed)
+        controls.target.lerp(new THREE.Vector3(...target), 0.04 * viewControls.animSpeed)
     }
-    controls.update();
-    renderer.render(scene, camera);
-    requestAnimationFrame(animate);
+    controls.object.up.lerp(new THREE.Vector3(viewControls.viewTilt / 100, 1, viewControls.viewTilt / 100), 0.05)
+    renderer.render(scene, camera)
 }
