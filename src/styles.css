@@ -17,3 +17,12 @@ li:has(.special_red) {
 .special_red input {
     color: #e61d5f !important
 }
+
+.boolean .property-name {
+    width: 90% !important
+}
+
+.boolean .c {
+    float: right !important;
+    width: 10% !important;
+}
