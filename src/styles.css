@@ -26,3 +26,16 @@ li:has(.special_red) {
     float: right !important;
     width: 10% !important;
 }
+
+.full_width_slider input {
+    visibility: hidden !important;
+    width: 0% !important;
+    padding: 0 0 0 0 !important;
+    margin: 0 0 0 0 !important;
+}
+
+.full_width_slider .slider {
+    width: calc(100% + 5px) !important;
+    /* float: right !important; */
+    margin-left: -5px !important;
+}

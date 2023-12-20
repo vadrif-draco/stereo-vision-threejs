@@ -2,31 +2,25 @@ import * as dat from 'dat.gui'
 import * as THREE from 'three'
 import { MapControls } from 'three/examples/jsm/controls/MapControls'
 
-const START_POS = [450, 600, 1250]
-const START_TARGET = [450, -150, 350]
+const START_POS = new THREE.Vector3(450, 600, 1250)
+const START_TARGET = new THREE.Vector3(450, -150, 350)
 
-let pos = START_POS
-let target = START_TARGET
+let cameraPos = START_POS
+let cameraTarget = START_TARGET
 
-const VIEW1_POS = [40, 100, 850]
-const VIEW1_TARGET = [360, 100, 420]
-const VIEW1_PLANE_ROT = [0, -0.64, 0] // In radians
-const VIEW1_PLANE_POS = [140, 100, 700]
+const SPHERE1_POS = new THREE.Vector3(600, 100, 300)
+const SPHERE2_POS = new THREE.Vector3(550, 100, 350)
+const SPHERE3_POS = new THREE.Vector3(500, 100, 400)
+const SPHERE4_POS = new THREE.Vector3(380, 20, 280)
 
-const VIEW2_POS = [180, 100, 960]
-const VIEW2_TARGET = [500, 100, 530]
-const VIEW2_PLANE_ROT = [0, -0.64, 0] // In radians
-const VIEW2_PLANE_POS = [290, 100, 815]
+const VIEW1_POS = new THREE.Vector3(40, 100, 850)
+const VIEW1_TARGET = new THREE.Vector3(360, 100, 420)
 
-const VIEW3_POS = [1150, 100, 550]
-const VIEW3_TARGET = [750, 100, 550]
-const VIEW3_PLANE_ROT = [0, 1.60, -0.60] // In radians
-const VIEW3_PLANE_POS = [965, 100, 550]
+const VIEW2_POS = new THREE.Vector3(240, 100, 1000)
+const VIEW2_TARGET = new THREE.Vector3(550, 100, 570)
 
-const SPHERE1_POS = [600, 100, 300]
-const SPHERE2_POS = [550, 100, 350]
-const SPHERE3_POS = [500, 100, 400]
-const SPHERE4_POS = [380, 20, 280]
+const VIEW3_POS = new THREE.Vector3(930, 100, 900)
+const VIEW3_TARGET = new THREE.Vector3(630, 100, 450)
 
 const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 20, 100000)
 
@@ -57,33 +51,57 @@ epipolarPlane12.visible = false
 epipolarPlane13.visible = false
 epipolarPlane23.visible = false
 
+const sphere1 = createNewSphere(SPHERE1_POS, 20, 0xEB9109)
+const sphere2 = createNewSphere(SPHERE2_POS, 20, 0xEB9109)
+const sphere3 = createNewSphere(SPHERE3_POS, 20, 0xEB9109)
+const sphere4 = createNewSphere(SPHERE4_POS, 20, 0xEB9109)
+
+const view1 = createNewSphere(VIEW1_POS, 10, 0xD0F9D6)
+const view2 = createNewSphere(VIEW2_POS, 10, 0xCED0FF)
+const view3 = createNewSphere(VIEW3_POS, 10, 0xFFB9B9)
+
+const rays = [
+    createNewLine(VIEW1_POS, SPHERE1_POS, 0xD0F9D6),
+    // The following two are the same ray above...
+    // because these spheres are collinear w.r.t view1
+    // createNewLine(VIEW1_POS, SPHERE2_POS, 0xD0F9D6),
+    // createNewLine(VIEW1_POS, SPHERE3_POS, 0xD0F9D6),
+    createNewLine(VIEW1_POS, SPHERE4_POS, 0xD0F9D6),
+    createNewLine(VIEW2_POS, SPHERE1_POS, 0xCED0FF),
+    createNewLine(VIEW2_POS, SPHERE2_POS, 0xCED0FF),
+    createNewLine(VIEW2_POS, SPHERE3_POS, 0xCED0FF),
+    createNewLine(VIEW2_POS, SPHERE4_POS, 0xCED0FF),
+    createNewLine(VIEW3_POS, SPHERE1_POS, 0xFFB9B9),
+    createNewLine(VIEW3_POS, SPHERE2_POS, 0xFFB9B9),
+    createNewLine(VIEW3_POS, SPHERE3_POS, 0xFFB9B9),
+    createNewLine(VIEW3_POS, SPHERE4_POS, 0xFFB9B9),
+]
+
+const viewPlane1 = createNewPlane(VIEW1_POS, VIEW1_TARGET, 0xD0F9D6)
+const viewPlane2 = createNewPlane(VIEW2_POS, VIEW2_TARGET, 0xCED0FF)
+const viewPlane3 = createNewPlane(VIEW3_POS, VIEW3_TARGET, 0xFFB9B9)
+
 const scene = new THREE.Scene()
 scene.add(
+
+    // Scene setup
     ambLight, dirLight, axesHelper, ground,
+
+    // Points being observed
+    sphere1, sphere2, sphere3, sphere4,
+
+    // Optical centers of "cameras" views observing the points
+    view1, view2, view3,
+
+    // The viewing/projection planes of each optical center
+    viewPlane1, viewPlane2, viewPlane3,
+
+    // Epipolar planes connecting each two "cameras"
     epipolarPlane12, epipolarPlane13, epipolarPlane23,
-    createNewSphere(...SPHERE1_POS, 20, 0xEB9109),
-    createNewSphere(...SPHERE2_POS, 20, 0xEB9109),
-    createNewSphere(...SPHERE3_POS, 20, 0xEB9109),
-    createNewSphere(...SPHERE4_POS, 20, 0xEB9109),
-    createNewSphere(...VIEW1_POS, 10, 0xD0F9D6),
-    createNewSphere(...VIEW2_POS, 10, 0xCED0FF),
-    createNewSphere(...VIEW3_POS, 10, 0xFFB9B9),
-    createNewLine(...VIEW1_POS, ...SPHERE1_POS, 0xD0F9D6),
-    // Same ray since these spheres are collinear w.r.t view1
-    // createNewLine(...VIEW1_POS, ...SPHERE2_POS, 0xD0F9D6),
-    // createNewLine(...VIEW1_POS, ...SPHERE3_POS, 0xD0F9D6),
-    createNewLine(...VIEW1_POS, ...SPHERE4_POS, 0xD0F9D6),
-    createNewLine(...VIEW2_POS, ...SPHERE1_POS, 0xCED0FF),
-    createNewLine(...VIEW2_POS, ...SPHERE2_POS, 0xCED0FF),
-    createNewLine(...VIEW2_POS, ...SPHERE3_POS, 0xCED0FF),
-    createNewLine(...VIEW2_POS, ...SPHERE4_POS, 0xCED0FF),
-    createNewLine(...VIEW3_POS, ...SPHERE1_POS, 0xFFB9B9),
-    createNewLine(...VIEW3_POS, ...SPHERE2_POS, 0xFFB9B9),
-    createNewLine(...VIEW3_POS, ...SPHERE3_POS, 0xFFB9B9),
-    createNewLine(...VIEW3_POS, ...SPHERE4_POS, 0xFFB9B9),
-    createNewPlane(...VIEW1_PLANE_POS, ...VIEW1_PLANE_ROT, 0xD0F9D6),
-    createNewPlane(...VIEW2_PLANE_POS, ...VIEW2_PLANE_ROT, 0xCED0FF),
-    createNewPlane(...VIEW3_PLANE_POS, ...VIEW3_PLANE_ROT, 0xFFB9B9),
+
+    // Rays connecting optical centers with points (for better visualization of point projection)
+    ...rays,
+
 ).fog = new THREE.Fog(0x191919, 1000, 5000)
 
 const controls = new MapControls(camera, renderer.domElement)
@@ -96,7 +114,8 @@ controls.enableZoom = false
 
 const viewControls = {
     freeroam: false,
-    viewTilt: 0.0,
+    cameraTilt: 0.0,
+    view3Tilt: 0.0,
     animSpeed: 1.0,
     e12visible: false,
     e13visible: false,
@@ -106,30 +125,28 @@ const viewControls = {
             "Rotation: " + controls.object.rotation.toArray()
             + "\nPosition: " + controls.object.position.toArray()
             + "\nTarget: " + controls.target.toArray()
+            + "\nUp: " + controls.object.up.toArray()
         )
     },
     v1: () => {
-        pos = VIEW1_POS
-        target = VIEW1_TARGET
+        cameraPos = VIEW1_POS
+        cameraTarget = VIEW1_TARGET
         setFreeroam(viewControls.freeroam = false)
-        // setTimeout(() => { viewControls.viewTilt = 0.0 }, 1000)
     },
     v2: () => {
-        pos = VIEW2_POS
-        target = VIEW2_TARGET
+        cameraPos = VIEW2_POS
+        cameraTarget = VIEW2_TARGET
         setFreeroam(viewControls.freeroam = false)
-        // setTimeout(() => { viewControls.viewTilt = 0.0 }, 1000)
     },
     v3: () => {
-        pos = VIEW3_POS
-        target = VIEW3_TARGET
+        cameraPos = VIEW3_POS
+        cameraTarget = VIEW3_TARGET
         setFreeroam(viewControls.freeroam = false)
-        // setTimeout(() => { viewControls.viewTilt = -70.0 }, 1000)
     },
     r: () => {
-        pos = START_POS
-        target = START_TARGET
-        viewControls.viewTilt = 0.0
+        cameraPos = START_POS
+        cameraTarget = START_TARGET
+        viewControls.cameraTilt = 0.0
         setFreeroam(viewControls.freeroam = false)
     },
 }
@@ -139,13 +156,14 @@ gui.add(viewControls, 'c').name('console.log -- for debugging purposes')
 gui.add(viewControls, 'v1').name('Switch to view 1')
 gui.add(viewControls, 'v2').name('Switch to view 2')
 gui.add(viewControls, 'v3').name('Switch to view 3')
-gui.add(viewControls, 'viewTilt', -100, 100, 5).name("Tilt view").listen().domElement.classList += " special_red"
 gui.add(viewControls, 'r').name('Reset view')
-gui.add(viewControls, 'animSpeed', 0.5, 2.5, 0.1).name("Animation speed")
-gui.add(viewControls, 'freeroam').name('Toggle freeroam').onChange(setFreeroam).listen()
+gui.add(viewControls, 'view3Tilt', -30, 30, 5).name("Tilt view 3").listen().domElement.classList += " special_red"
+gui.add(viewControls, 'cameraTilt', -60, 60, 1).name("Camera tilt").listen().domElement.classList += " full_width_slider"
+gui.add(viewControls, 'animSpeed', 0.5, 2.5, 0.1).name("Animation speed").domElement.classList += " full_width_slider"
 gui.add(viewControls, 'e12visible').name('Toggle epipolar plane O1-P-O2').onChange(e => epipolarPlane12.visible = e)
 gui.add(viewControls, 'e13visible').name('Toggle epipolar plane O1-P-O3').onChange(e => epipolarPlane13.visible = e)
 gui.add(viewControls, 'e23visible').name('Toggle epipolar plane O2-P-O3').onChange(e => epipolarPlane23.visible = e)
+gui.add(viewControls, 'freeroam').name('Toggle freeroam').onChange(setFreeroam).listen()
 
 animate()
 
@@ -159,56 +177,68 @@ function setFreeroam(enabled) {
     controls.enablePan = controls.enableRotate = controls.enableZoom = enabled
 }
 
-function createNewSphere(x, y, z, radius, color) {
+function calculatePlanePosition(viewPos, viewTarget, focalLength = 180) {
+    // 1. Get vector from view position to view target
+    let posToTarget = new THREE.Vector3().subVectors(viewTarget, viewPos)
+    // 2. Normalize it
+    posToTarget.normalize()
+    // 3. Multiply it by desired focal length
+    posToTarget.multiplyScalar(focalLength)
+    // 4. Add that to the view pos
+    return new THREE.Vector3().addVectors(viewPos, posToTarget)
+}
+
+function createNewSphere(o, radius, color) {
     let sphere = new THREE.Mesh(
         new THREE.SphereGeometry(radius, 64, 64),
         new THREE.MeshStandardMaterial({ color: color, roughness: 0.2, metalness: 0.99 })
     )
-    sphere.position.set(x, y, z)
+    sphere.position.set(...o)
     return sphere
 }
 
-function createNewEpipolarPlane(O1, O2, P) {
+function createNewEpipolarPlane(o1, o2, p) {
     let epipolarPlane = new THREE.Mesh(
-        new THREE.BufferGeometry().setFromPoints([
-            new THREE.Vector3(...P),
-            new THREE.Vector3(...O1),
-            new THREE.Vector3(...O2),
-        ]),
+        new THREE.BufferGeometry().setFromPoints([o1, o2, p]),
         new THREE.MeshBasicMaterial({ color: 0xFFFFFF, transparent: true, opacity: 0.1, side: THREE.DoubleSide })
     )
     epipolarPlane.renderOrder = 2
     return epipolarPlane
 }
 
-function createNewPlane(x, y, z, rotX, rotY, rotZ, color) {
+function createNewPlane(viewPos, viewTarget, color) {
     let plane = new THREE.Mesh(
         new THREE.PlaneGeometry(180, 120),
         new THREE.MeshBasicMaterial({ color: color, depthWrite: false, transparent: true, opacity: 0.2, side: THREE.DoubleSide })
     )
-    plane.rotation.set(rotX, rotY, rotZ)
-    plane.position.set(x, y, z)
+    plane.position.set(...calculatePlanePosition(viewPos, viewTarget))
+    plane.lookAt(viewTarget)
     plane.renderOrder = 1
     return plane
 }
 
-function createNewLine(x1, y1, z1, x2, y2, z2, color) {
+function createNewLine(p1, p2, color) {
     return new THREE.Line(
-        new THREE.BufferGeometry().setFromPoints([
-            new THREE.Vector3(x1, y1, z1),
-            new THREE.Vector3(x2, y2, z2),
-        ]),
-        new THREE.LineBasicMaterial({ color: color, transparent: true, opacity: 0.2 })
+        new THREE.BufferGeometry().setFromPoints([p1, p2]),
+        new THREE.LineBasicMaterial({ color: color, transparent: true, opacity: 0.1, blending: THREE.AdditiveBlending })
     )
 }
 
-function animate() {
+function animate(time) {
     requestAnimationFrame(animate)
     controls.update()
     if (!viewControls.freeroam) {
-        controls.object.position.lerp(new THREE.Vector3(...pos), 0.04 * viewControls.animSpeed)
-        controls.target.lerp(new THREE.Vector3(...target), 0.04 * viewControls.animSpeed)
+        controls.object.position.lerp(cameraPos, 0.04 * viewControls.animSpeed)
+        controls.target.lerp(cameraTarget, 0.04 * viewControls.animSpeed)
     }
-    controls.object.up.lerp(new THREE.Vector3(viewControls.viewTilt / 100, 1, viewControls.viewTilt / 100), 0.05)
+    // Did I just rediscover quaternions?
+    controls.object.up =
+        new THREE.Vector3(0, 1, 0)
+            .applyAxisAngle(
+                new THREE.Vector3(0, 0, 1),
+                -THREE.MathUtils.degToRad(viewControls.cameraTilt)
+            )
+
+    viewPlane3.rotation.z = THREE.MathUtils.degToRad(viewControls.view3Tilt)
     renderer.render(scene, camera)
 }
