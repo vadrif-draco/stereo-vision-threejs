@@ -28,12 +28,63 @@ const SPHERE2_POS = [550, 100, 350]
 const SPHERE3_POS = [500, 100, 400]
 const SPHERE4_POS = [380, 20, 280]
 
-const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 20, 20000)
+const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 20, 100000)
 
 const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true })
 renderer.setSize(window.innerWidth, window.innerHeight)
 document.body.appendChild(renderer.domElement)
 window.addEventListener('resize', onWindowResize)
+
+const axesHelper = new THREE.AxesHelper(100000)
+
+const ambLight = new THREE.AmbientLight(0xffffff, 50)
+
+const dirLight = new THREE.DirectionalLight(0xffffff, 50, 0, 0.5)
+dirLight.position.set(-100, 400, 100)
+
+const ground = new THREE.Mesh(
+    new THREE.PlaneGeometry(100000, 100000),
+    new THREE.MeshBasicMaterial({ color: 0x333333, transparent: true, opacity: 0.5, side: THREE.DoubleSide })
+)
+ground.rotation.x = THREE.MathUtils.degToRad(-90)
+ground.position.x = 50000
+ground.position.z = 50000
+
+const epipolarPlane12 = createNewEpipolarPlane(VIEW1_POS, VIEW2_POS, SPHERE1_POS)
+const epipolarPlane13 = createNewEpipolarPlane(VIEW1_POS, VIEW3_POS, SPHERE1_POS)
+const epipolarPlane23 = createNewEpipolarPlane(VIEW2_POS, VIEW3_POS, SPHERE1_POS)
+epipolarPlane12.visible = false
+epipolarPlane13.visible = false
+epipolarPlane23.visible = false
+
+const scene = new THREE.Scene()
+scene.add(
+    ambLight, dirLight, axesHelper, ground,
+    epipolarPlane12, epipolarPlane13, epipolarPlane23,
+    createNewSphere(...SPHERE1_POS, 20, 0xEB9109),
+    createNewSphere(...SPHERE2_POS, 20, 0xEB9109),
+    createNewSphere(...SPHERE3_POS, 20, 0xEB9109),
+    createNewSphere(...SPHERE4_POS, 20, 0xEB9109),
+    createNewSphere(...VIEW1_POS, 10, 0xD0F9D6),
+    createNewSphere(...VIEW2_POS, 10, 0xCED0FF),
+    createNewSphere(...VIEW3_POS, 10, 0xFFB9B9),
+    createNewLine(...VIEW1_POS, ...SPHERE1_POS, 0xD0F9D6),
+    // Same ray since these spheres are collinear w.r.t view1
+    // createNewLine(...VIEW1_POS, ...SPHERE2_POS, 0xD0F9D6),
+    // createNewLine(...VIEW1_POS, ...SPHERE3_POS, 0xD0F9D6),
+    createNewLine(...VIEW1_POS, ...SPHERE4_POS, 0xD0F9D6),
+    createNewLine(...VIEW2_POS, ...SPHERE1_POS, 0xCED0FF),
+    createNewLine(...VIEW2_POS, ...SPHERE2_POS, 0xCED0FF),
+    createNewLine(...VIEW2_POS, ...SPHERE3_POS, 0xCED0FF),
+    createNewLine(...VIEW2_POS, ...SPHERE4_POS, 0xCED0FF),
+    createNewLine(...VIEW3_POS, ...SPHERE1_POS, 0xFFB9B9),
+    createNewLine(...VIEW3_POS, ...SPHERE2_POS, 0xFFB9B9),
+    createNewLine(...VIEW3_POS, ...SPHERE3_POS, 0xFFB9B9),
+    createNewLine(...VIEW3_POS, ...SPHERE4_POS, 0xFFB9B9),
+    createNewPlane(...VIEW1_PLANE_POS, ...VIEW1_PLANE_ROT, 0xD0F9D6),
+    createNewPlane(...VIEW2_PLANE_POS, ...VIEW2_PLANE_ROT, 0xCED0FF),
+    createNewPlane(...VIEW3_PLANE_POS, ...VIEW3_PLANE_ROT, 0xFFB9B9),
+).fog = new THREE.Fog(0x191919, 1000, 5000)
 
 const controls = new MapControls(camera, renderer.domElement)
 controls.enableDamping = true
@@ -47,6 +98,9 @@ const viewControls = {
     freeroam: false,
     viewTilt: 0.0,
     animSpeed: 1.0,
+    e12visible: false,
+    e13visible: false,
+    e23visible: false,
     c: () => {
         console.log(
             "Rotation: " + controls.object.rotation.toArray()
@@ -89,49 +143,9 @@ gui.add(viewControls, 'viewTilt', -100, 100, 5).name("Tilt view").listen().domEl
 gui.add(viewControls, 'r').name('Reset view')
 gui.add(viewControls, 'animSpeed', 0.5, 2.5, 0.1).name("Animation speed")
 gui.add(viewControls, 'freeroam').name('Toggle freeroam').onChange(setFreeroam).listen()
-
-const axesHelper = new THREE.AxesHelper(100000)
-
-const ambLight = new THREE.AmbientLight(0xffffff, 50)
-
-const dirLight = new THREE.DirectionalLight(0xffffff, 50, 0, 0.5)
-dirLight.position.set(-100, 400, 100)
-
-const ground = new THREE.Mesh(
-    new THREE.PlaneGeometry(100000, 100000),
-    new THREE.MeshBasicMaterial({ color: 0x333333, transparent: true, opacity: 0.5, side: THREE.DoubleSide })
-)
-ground.rotation.x = -0.5 * Math.PI
-ground.position.x = 50000
-ground.position.z = 50000
-
-const scene = new THREE.Scene()
-scene.add(
-    ambLight, dirLight, axesHelper, ground,
-    createNewSphere(...SPHERE1_POS, 20, 0xEB9109),
-    createNewSphere(...SPHERE2_POS, 20, 0xEB9109),
-    createNewSphere(...SPHERE3_POS, 20, 0xEB9109),
-    createNewSphere(...SPHERE4_POS, 20, 0xEB9109),
-    createNewSphere(...VIEW1_POS, 10, 0xD0F9D6),
-    createNewSphere(...VIEW2_POS, 10, 0xCED0FF),
-    createNewSphere(...VIEW3_POS, 10, 0xFFB9B9),
-    createNewLine(...VIEW1_POS, ...SPHERE1_POS, 0xD0F9D6),
-    // Same ray since these spheres are collinear w.r.t view1
-    // createNewLine(...VIEW1_POS, ...SPHERE2_POS, 0xD0F9D6),
-    // createNewLine(...VIEW1_POS, ...SPHERE3_POS, 0xD0F9D6),
-    createNewLine(...VIEW1_POS, ...SPHERE4_POS, 0xD0F9D6),
-    createNewLine(...VIEW2_POS, ...SPHERE1_POS, 0xCED0FF),
-    createNewLine(...VIEW2_POS, ...SPHERE2_POS, 0xCED0FF),
-    createNewLine(...VIEW2_POS, ...SPHERE3_POS, 0xCED0FF),
-    createNewLine(...VIEW2_POS, ...SPHERE4_POS, 0xCED0FF),
-    createNewLine(...VIEW3_POS, ...SPHERE1_POS, 0xFFB9B9),
-    createNewLine(...VIEW3_POS, ...SPHERE2_POS, 0xFFB9B9),
-    createNewLine(...VIEW3_POS, ...SPHERE3_POS, 0xFFB9B9),
-    createNewLine(...VIEW3_POS, ...SPHERE4_POS, 0xFFB9B9),
-    createNewPlane(...VIEW1_PLANE_POS, ...VIEW1_PLANE_ROT, 0xD0F9D6),
-    createNewPlane(...VIEW2_PLANE_POS, ...VIEW2_PLANE_ROT, 0xCED0FF),
-    createNewPlane(...VIEW3_PLANE_POS, ...VIEW3_PLANE_ROT, 0xFFB9B9),
-).fog = new THREE.Fog(0x191919, 1000, 5000)
+gui.add(viewControls, 'e12visible').name('Toggle epipolar plane O1-P-O2').onChange(e => epipolarPlane12.visible = e)
+gui.add(viewControls, 'e13visible').name('Toggle epipolar plane O1-P-O3').onChange(e => epipolarPlane13.visible = e)
+gui.add(viewControls, 'e23visible').name('Toggle epipolar plane O2-P-O3').onChange(e => epipolarPlane23.visible = e)
 
 animate()
 
@@ -154,13 +168,27 @@ function createNewSphere(x, y, z, radius, color) {
     return sphere
 }
 
+function createNewEpipolarPlane(O1, O2, P) {
+    let epipolarPlane = new THREE.Mesh(
+        new THREE.BufferGeometry().setFromPoints([
+            new THREE.Vector3(...P),
+            new THREE.Vector3(...O1),
+            new THREE.Vector3(...O2),
+        ]),
+        new THREE.MeshBasicMaterial({ color: 0xFFFFFF, transparent: true, opacity: 0.1, side: THREE.DoubleSide })
+    )
+    epipolarPlane.renderOrder = 2
+    return epipolarPlane
+}
+
 function createNewPlane(x, y, z, rotX, rotY, rotZ, color) {
     let plane = new THREE.Mesh(
         new THREE.PlaneGeometry(180, 120),
-        new THREE.MeshBasicMaterial({ color: color, transparent: true, opacity: 0.2, side: THREE.DoubleSide })
+        new THREE.MeshBasicMaterial({ color: color, depthWrite: false, transparent: true, opacity: 0.2, side: THREE.DoubleSide })
     )
     plane.rotation.set(rotX, rotY, rotZ)
     plane.position.set(x, y, z)
+    plane.renderOrder = 1
     return plane
 }
 
