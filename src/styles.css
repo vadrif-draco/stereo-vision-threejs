@@ -7,24 +7,32 @@ body {
 }
 
 li:has(.special_red) {
-    border-left: 3px solid #e61d5f !important
+    border-left: 3px solid #e61d5f !important;
 }
 
 .special_red .slider-fg {
-    background: #e61d5f !important
+    background: #e61d5f !important;
 }
 
 .special_red input {
-    color: #e61d5f !important
+    color: #e61d5f !important;
+}
+
+li:has(.special_blue) {
+    border-left: 3px solid #2FA1D6 !important;
 }
 
 .boolean .property-name {
-    width: 90% !important
+    width: 90% !important;
 }
 
 .boolean .c {
     float: right !important;
     width: 10% !important;
+}
+
+.has-slider input {
+    padding: 2px 2px 1px 2px !important;
 }
 
 .full_width_slider input {
@@ -36,6 +44,5 @@ li:has(.special_red) {
 
 .full_width_slider .slider {
     width: calc(100% + 5px) !important;
-    /* float: right !important; */
     margin-left: -5px !important;
 }

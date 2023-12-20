@@ -113,13 +113,6 @@ controls.enableRotate = false
 controls.enableZoom = false
 
 const viewControls = {
-    freeroam: false,
-    cameraTilt: 0.0,
-    view3Tilt: 0.0,
-    animSpeed: 1.0,
-    e12visible: false,
-    e13visible: false,
-    e23visible: false,
     c: () => {
         console.log(
             "Rotation: " + controls.object.rotation.toArray()
@@ -143,12 +136,19 @@ const viewControls = {
         cameraTarget = VIEW3_TARGET
         setFreeroam(viewControls.freeroam = false)
     },
+    view3Tilt: 0.0,
+    cameraTilt: 0.0,
+    animSpeed: 1.0,
     r: () => {
         cameraPos = START_POS
         cameraTarget = START_TARGET
         viewControls.cameraTilt = 0.0
         setFreeroam(viewControls.freeroam = false)
     },
+    e12visible: false,
+    e13visible: false,
+    e23visible: false,
+    freeroam: false,
 }
 
 const gui = new dat.GUI({ width: 300 })
@@ -156,10 +156,10 @@ gui.add(viewControls, 'c').name('console.log -- for debugging purposes')
 gui.add(viewControls, 'v1').name('Switch to view 1')
 gui.add(viewControls, 'v2').name('Switch to view 2')
 gui.add(viewControls, 'v3').name('Switch to view 3')
-gui.add(viewControls, 'r').name('Reset view')
 gui.add(viewControls, 'view3Tilt', -30, 30, 5).name("Tilt view 3").listen().domElement.classList += " special_red"
 gui.add(viewControls, 'cameraTilt', -60, 60, 1).name("Camera tilt").listen().domElement.classList += " full_width_slider"
 gui.add(viewControls, 'animSpeed', 0.5, 2.5, 0.1).name("Animation speed").domElement.classList += " full_width_slider"
+gui.add(viewControls, 'r').name('Reset camera').domElement.classList += " special_blue"
 gui.add(viewControls, 'e12visible').name('Toggle epipolar plane O1-P-O2').onChange(e => epipolarPlane12.visible = e)
 gui.add(viewControls, 'e13visible').name('Toggle epipolar plane O1-P-O3').onChange(e => epipolarPlane13.visible = e)
 gui.add(viewControls, 'e23visible').name('Toggle epipolar plane O2-P-O3').onChange(e => epipolarPlane23.visible = e)
