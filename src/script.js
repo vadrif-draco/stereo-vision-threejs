@@ -22,6 +22,11 @@ const VIEW2_TARGET = new THREE.Vector3(550, 100, 570)
 const VIEW3_POS = new THREE.Vector3(930, 100, 900)
 const VIEW3_TARGET = new THREE.Vector3(630, 100, 450)
 
+const LORANGE = 0xEB9109 // Light Orange
+const LGREEN = 0xD0F9D6 // Light Green
+const LBLUE = 0xCED0FF // Light Blue
+const LRED = 0xFFB9B9 // Light Red
+
 const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 20, 100000)
 
 const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true })
@@ -51,35 +56,35 @@ epipolarPlane12.visible = false
 epipolarPlane13.visible = false
 epipolarPlane23.visible = false
 
-const sphere1 = createNewSphere(SPHERE1_POS, 20, 0xEB9109)
-const sphere2 = createNewSphere(SPHERE2_POS, 20, 0xEB9109)
-const sphere3 = createNewSphere(SPHERE3_POS, 20, 0xEB9109)
-const sphere4 = createNewSphere(SPHERE4_POS, 20, 0xEB9109)
+const sphere1 = createNewSphere(SPHERE1_POS, 20, LORANGE)
+const sphere2 = createNewSphere(SPHERE2_POS, 20, LORANGE)
+const sphere3 = createNewSphere(SPHERE3_POS, 20, LORANGE)
+const sphere4 = createNewSphere(SPHERE4_POS, 20, LORANGE)
 
-const view1 = createNewSphere(VIEW1_POS, 10, 0xD0F9D6)
-const view2 = createNewSphere(VIEW2_POS, 10, 0xCED0FF)
-const view3 = createNewSphere(VIEW3_POS, 10, 0xFFB9B9)
+const view1 = createNewSphere(VIEW1_POS, 10, LGREEN)
+const view2 = createNewSphere(VIEW2_POS, 10, LBLUE)
+const view3 = createNewSphere(VIEW3_POS, 10, LRED)
 
 const rays = [
-    createNewLine(VIEW1_POS, SPHERE1_POS, 0xD0F9D6),
+    createNewLine(VIEW1_POS, SPHERE1_POS, LGREEN),
     // The following two are the same ray above...
     // because these spheres are collinear w.r.t view1
-    // createNewLine(VIEW1_POS, SPHERE2_POS, 0xD0F9D6),
-    // createNewLine(VIEW1_POS, SPHERE3_POS, 0xD0F9D6),
-    createNewLine(VIEW1_POS, SPHERE4_POS, 0xD0F9D6),
-    createNewLine(VIEW2_POS, SPHERE1_POS, 0xCED0FF),
-    createNewLine(VIEW2_POS, SPHERE2_POS, 0xCED0FF),
-    createNewLine(VIEW2_POS, SPHERE3_POS, 0xCED0FF),
-    createNewLine(VIEW2_POS, SPHERE4_POS, 0xCED0FF),
-    createNewLine(VIEW3_POS, SPHERE1_POS, 0xFFB9B9),
-    createNewLine(VIEW3_POS, SPHERE2_POS, 0xFFB9B9),
-    createNewLine(VIEW3_POS, SPHERE3_POS, 0xFFB9B9),
-    createNewLine(VIEW3_POS, SPHERE4_POS, 0xFFB9B9),
+    // createNewLine(VIEW1_POS, SPHERE2_POS, LGREEN),
+    // createNewLine(VIEW1_POS, SPHERE3_POS, LGREEN),
+    createNewLine(VIEW1_POS, SPHERE4_POS, LGREEN),
+    createNewLine(VIEW2_POS, SPHERE1_POS, LBLUE),
+    createNewLine(VIEW2_POS, SPHERE2_POS, LBLUE),
+    createNewLine(VIEW2_POS, SPHERE3_POS, LBLUE),
+    createNewLine(VIEW2_POS, SPHERE4_POS, LBLUE),
+    createNewLine(VIEW3_POS, SPHERE1_POS, LRED),
+    createNewLine(VIEW3_POS, SPHERE2_POS, LRED),
+    createNewLine(VIEW3_POS, SPHERE3_POS, LRED),
+    createNewLine(VIEW3_POS, SPHERE4_POS, LRED),
 ]
 
-const viewPlane1 = createNewPlane(VIEW1_POS, VIEW1_TARGET, 0xD0F9D6)
-const viewPlane2 = createNewPlane(VIEW2_POS, VIEW2_TARGET, 0xCED0FF)
-const viewPlane3 = createNewPlane(VIEW3_POS, VIEW3_TARGET, 0xFFB9B9)
+const viewPlane1 = createNewPlane(VIEW1_POS, VIEW1_TARGET, LGREEN)
+const viewPlane2 = createNewPlane(VIEW2_POS, VIEW2_TARGET, LBLUE)
+const viewPlane3 = createNewPlane(VIEW3_POS, VIEW3_TARGET, LRED)
 
 const scene = new THREE.Scene()
 scene.add(
@@ -152,7 +157,7 @@ const viewControls = {
 }
 
 const gui = new dat.GUI({ width: 300 })
-gui.add(viewControls, 'c').name('console.log -- for debugging purposes')
+gui.add(viewControls, 'c').name('console.log -- for debugging purposes; ignore').domElement.classList += " special_black"
 gui.add(viewControls, 'v1').name('Switch to view 1')
 gui.add(viewControls, 'v2').name('Switch to view 2')
 gui.add(viewControls, 'v3').name('Switch to view 3')
@@ -160,9 +165,9 @@ gui.add(viewControls, 'view3Tilt', -30, 30, 5).name("Tilt view 3").listen().domE
 gui.add(viewControls, 'cameraTilt', -60, 60, 1).name("Camera tilt").listen().domElement.classList += " full_width_slider"
 gui.add(viewControls, 'animSpeed', 0.5, 2.5, 0.1).name("Animation speed").domElement.classList += " full_width_slider"
 gui.add(viewControls, 'r').name('Reset camera').domElement.classList += " special_blue"
-gui.add(viewControls, 'e12visible').name('Toggle epipolar plane O1-P-O2').onChange(e => epipolarPlane12.visible = e)
-gui.add(viewControls, 'e13visible').name('Toggle epipolar plane O1-P-O3').onChange(e => epipolarPlane13.visible = e)
-gui.add(viewControls, 'e23visible').name('Toggle epipolar plane O2-P-O3').onChange(e => epipolarPlane23.visible = e)
+gui.add(viewControls, 'e12visible').name('Toggle epipolar plane O1-P-O2').onChange(e => epipolarPlane12.visible = e).domElement.classList += " special_gray"
+gui.add(viewControls, 'e13visible').name('Toggle epipolar plane O1-P-O3').onChange(e => epipolarPlane13.visible = e).domElement.classList += " special_gray"
+gui.add(viewControls, 'e23visible').name('Toggle epipolar plane O2-P-O3').onChange(e => epipolarPlane23.visible = e).domElement.classList += " special_gray"
 gui.add(viewControls, 'freeroam').name('Toggle freeroam').onChange(setFreeroam).listen()
 
 animate()

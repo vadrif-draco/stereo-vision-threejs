@@ -22,6 +22,14 @@ li:has(.special_blue) {
     border-left: 3px solid #2FA1D6 !important;
 }
 
+li:has(.special_gray) {
+    border-left: 3px solid #A9A9A9 !important;
+}
+
+li:has(.special_black) {
+    border-left: 3px solid #191919 !important;
+}
+
 .boolean .property-name {
     width: 90% !important;
 }
