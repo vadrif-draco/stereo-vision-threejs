@@ -30,6 +30,18 @@ li:has(.special_black) {
     border-left: 3px solid #191919 !important;
 }
 
+li:has(.special_orange) {
+    border-left: 3px solid #EB9109 !important;
+}
+
+.special_orange .slider-fg {
+    background: #EB9109 !important;
+}
+
+.special_orange input {
+    color: #EB9109 !important;
+}
+
 .boolean .property-name {
     width: 90% !important;
 }
